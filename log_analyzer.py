@@ -1,5 +1,4 @@
 import argparse
-import dataclasses
 import datetime
 import gzip
 import json
@@ -9,11 +8,11 @@ import re
 import statistics
 import string
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
-from collections import namedtuple, defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple
+
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -35,7 +34,8 @@ BASE_CONFIG = {
 logging.basicConfig(format="[%(asctime)s]%(msecs)d %(levelname)s %(message)s",
                     datefmt="%Y.%m.%d %H:%M:%S",
                     level=logging.INFO,
-                    filename=BASE_CONFIG["SCRIPT_LOG_FILE"])
+                    filename="script_log"
+                    )
 
 
 # LogInfo = namedtuple("LogInfo", ["path", "ext", "report_name", "report_dir"])
@@ -53,7 +53,7 @@ def get_last_log(config):
     https: // tproger.ru / translations / regular - expression - python /
     https://habr.com/ru/articles/330034/"""
     logging.info("Get lastLog")
-    log_pattern = re.compile(r"nginx-access-ui\.log-(?P<date>\d{8})(?P<ext>\.gz|log)?$")
+    log_pattern = re.compile(r"nginx-access-ui\.log-(?P<date>\d{8})(?P<ext>\.gz|txt)?$")
     if not Path(config["REPORT_DIR"]).exists():
         logging.info("Create Report Dir")
         Path.mkdir(Path.cwd() / config["REPORT_DIR"])
@@ -66,7 +66,6 @@ def get_last_log(config):
     log_dir = pathlib.Path(str(config["LOG_DIR"]))
     for path in log_dir.iterdir():
         try:
-
             log_name = log_pattern.match(str(path).split('/')[1])
             log_date = log_name['date']
             extension = log_name['ext']
@@ -191,11 +190,9 @@ if __name__ == "__main__":
     if arg.new_config:
         with open(arg.new_config) as cfg:
             config = json.load(cfg)
-
     else:
         config = BASE_CONFIG
-    # print(arg.new_config)
-    # print(config)
+
     try:
         main(config)
     except KeyboardInterrupt:
